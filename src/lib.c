@@ -5,9 +5,33 @@
 #include "../include/cthread.h"
 #include "../include/cdata.h"
 
+#define MIN_PRIORITY 1
+#define MAX_PRIORITY 3
+
+int tidCounter;
+PFILA2 highPriorityQueue, mediumPriorityQueue, lowPriorityQueue;
+
+void getContext(TCB_t *tcb) {
+	//Initialize new thread context
+	getcontext(&tcb->context);
+	tcb->context.uc_link = &returnContext;
+   	tcb->context.uc_stack.ss_sp = tcb->stack;
+	tcb->context.uc_stack.ss_size = sizeof(tcb->stack);	
+
+	makecontext(&tcb->context, (void*)(*start), 1, arg);
+
+	return tcb->context;
+}
 
 int ccreate (void* (*start)(void*), void *arg, int prio) {
-	return -1;
+	TCB_t *tcb = (TCB_t*)malloc(sizeof(TCB_t));
+
+	tcb->tid = getTid();
+	tcb->state = READY;
+	tcb->prio = prio;
+	tcb->context = getContext();
+
+	return tcb->tid;
 }
 
 int csetprio(int tid, int prio) {
