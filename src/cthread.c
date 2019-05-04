@@ -5,6 +5,7 @@
 #include "../include/cdata.h"
 
 #define ERRO -9
+#define OK 0
 
 #define PRIO_ALTA 0
 #define PRIO_MEDIA 1
@@ -15,10 +16,39 @@ PFILA2 highPriorityQueue, mediumPriorityQueue, lowPriorityQueue;
 PFILA2 bloqueados;
 
 int checkPrio(int prio){
+	int retorno;
 	if(prio < PRIO_ALTA || prio > PRIO_BAIXA){
-		return ERRO;
+		retorno = ERRO;
 	}
-	return prio;
+	else{
+		retorno = OK;
+	}
+	return retorno;
+}
+
+int changeFilaPorPrioridade(void *thread, int prio){
+	int retorno;
+	PFILA2 pFila2 = NULL;
+
+	if(prio == PRIO_ALTA){
+		pFila2 = highPriorityQueue;
+	}
+	else if(prio == PRIO_MEDIA)
+	{
+		pFila2 = mediumPriorityQueue;
+	}
+	else if(prio == PRIO_BAIXA){
+		pFila2 = lowPriorityQueue;
+	}
+
+	if(AppendFila2(pFila2, thread) == 0){
+		retorno = OK;
+	}
+	else{
+		retorno = ERRO;
+	}
+
+	return retorno;
 }
 
 int main(){
@@ -37,23 +67,36 @@ int ccreate (void* (*start)(void*), void *arg, int prio) {
 }
 
 int csetprio(int tid, int prio){
-	int retorno = ERRO;
 	TCB_t* thread;
+	int oldPrio;
 
 	if(checkPrio(prio) == ERRO){
-		retorno = ERRO;
+		return ERRO;
 	}
 	else{
 		if(runningThread->tid == tid){
 			runningThread->prio = prio;
-			retorno = 0;
+			return OK;
 		}
 		if(FirstFila2(highPriorityQueue) == 0){
 			thread = (TCB_t *) GetAtIteratorFila2(highPriorityQueue);
 			while(thread != NULL){
 				if(thread->tid == tid){
+					oldPrio = thread->prio;
 					thread->prio = prio;
-					retorno = 0;
+					if(changeFilaPorPrioridade(thread, thread->prio) == OK){
+						if(DeleteAtIteratorFila2(highPriorityQueue) == 0){
+							return OK;
+						}
+						else{
+							thread->prio = oldPrio;
+							changeFilaPorPrioridade(thread, thread->prio);
+							return ERRO;
+						}
+					}
+					else{
+						return ERRO;
+					}
 				}
 				thread = (TCB_t *) GetAtNextIteratorFila2(highPriorityQueue);
 			}
@@ -62,8 +105,21 @@ int csetprio(int tid, int prio){
 			thread = (TCB_t *) GetAtIteratorFila2(mediumPriorityQueue);
 			while(thread != NULL){
 				if(thread->tid == tid){
+					oldPrio = thread->prio;
 					thread->prio = prio;
-					retorno = 0;
+					if(changeFilaPorPrioridade(thread, thread->prio) == OK){
+						if(DeleteAtIteratorFila2(mediumPriorityQueue) == 0){
+							return OK;
+						}
+						else{
+							thread->prio = oldPrio;
+							changeFilaPorPrioridade(thread, thread->prio);
+							return ERRO;
+						}
+					}
+					else{
+						return ERRO;
+					}
 				}
 				thread = (TCB_t *) GetAtNextIteratorFila2(mediumPriorityQueue);
 			}
@@ -72,8 +128,21 @@ int csetprio(int tid, int prio){
 			thread = (TCB_t *) GetAtIteratorFila2(lowPriorityQueue);
 			while(thread != NULL){
 				if(thread->tid == tid){
+					oldPrio = thread->prio;
 					thread->prio = prio;
-					retorno = 0;
+					if(changeFilaPorPrioridade(thread, thread->prio) == OK){
+						if(DeleteAtIteratorFila2(lowPriorityQueue) == 0){
+							return OK;
+						}
+						else{
+							thread->prio = oldPrio;
+							changeFilaPorPrioridade(thread, thread->prio);
+							return ERRO;
+						}
+					}
+					else{
+						return ERRO;
+					}
 				}
 				thread = (TCB_t *) GetAtNextIteratorFila2(lowPriorityQueue);
 			}
@@ -83,13 +152,13 @@ int csetprio(int tid, int prio){
 			while(thread != NULL){
 				if(thread->tid == tid){
 					thread->prio = prio;
-					retorno = 0;
+					return OK;
 				}
 				thread = (TCB_t *) GetAtNextIteratorFila2(bloqueados);
 			}
 		}
 	}
-	return retorno;
+	return ERRO;
 }
 
 int cyield(void) {
