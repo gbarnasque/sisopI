@@ -40,7 +40,7 @@ int changeFilaPorPrioridade(void *thread, int prio){
 	else if(prio == PRIO_BAIXA){
 		pFila2 = lowPriorityQueue;
 	}
-
+	
 	if(AppendFila2(pFila2, thread) == 0){
 		retorno = OK;
 	}
@@ -79,8 +79,8 @@ int csetprio(int tid, int prio){
 			return OK;
 		}
 		if(FirstFila2(highPriorityQueue) == 0){
-			thread = (TCB_t *) GetAtIteratorFila2(highPriorityQueue);
-			while(thread != NULL){
+			do{
+				thread = (TCB_t *) GetAtIteratorFila2(highPriorityQueue);
 				if(thread->tid == tid){
 					oldPrio = thread->prio;
 					thread->prio = prio;
@@ -98,12 +98,13 @@ int csetprio(int tid, int prio){
 						return ERRO;
 					}
 				}
-				thread = (TCB_t *) GetAtNextIteratorFila2(highPriorityQueue);
-			}
+				NextFila2(highPriorityQueue);
+
+			} while(thread != NULL);
 		}
 		if(FirstFila2(mediumPriorityQueue) == 0){
-			thread = (TCB_t *) GetAtIteratorFila2(mediumPriorityQueue);
-			while(thread != NULL){
+			do{
+				thread = (TCB_t *) GetAtIteratorFila2(mediumPriorityQueue);
 				if(thread->tid == tid){
 					oldPrio = thread->prio;
 					thread->prio = prio;
@@ -121,12 +122,12 @@ int csetprio(int tid, int prio){
 						return ERRO;
 					}
 				}
-				thread = (TCB_t *) GetAtNextIteratorFila2(mediumPriorityQueue);
-			}
+				NextFila2(mediumPriorityQueue);
+			} while(thread != NULL);
 		}
 		if(FirstFila2(lowPriorityQueue) == 0){
-			thread = (TCB_t *) GetAtIteratorFila2(lowPriorityQueue);
-			while(thread != NULL){
+			do{
+				thread = (TCB_t *) GetAtIteratorFila2(lowPriorityQueue);
 				if(thread->tid == tid){
 					oldPrio = thread->prio;
 					thread->prio = prio;
@@ -144,18 +145,18 @@ int csetprio(int tid, int prio){
 						return ERRO;
 					}
 				}
-				thread = (TCB_t *) GetAtNextIteratorFila2(lowPriorityQueue);
-			}
+				NextFila2(lowPriorityQueue);
+			} 
 		}
 		if(FirstFila2(bloqueados) == 0){
-			thread = (TCB_t *) GetAtIteratorFila2(bloqueados);
-			while(thread != NULL){
+			do{
+				thread = (TCB_t *) GetAtIteratorFila2(bloqueados);
 				if(thread->tid == tid){
 					thread->prio = prio;
 					return OK;
 				}
-				thread = (TCB_t *) GetAtNextIteratorFila2(bloqueados);
-			}
+				NextFila2(bloqueados);
+			} while(thread != NULL);
 		}
 	}
 	return ERRO;
