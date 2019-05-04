@@ -15,6 +15,8 @@ TCB_t *runningThread;
 PFILA2 highPriorityQueue, mediumPriorityQueue, lowPriorityQueue;
 PFILA2 bloqueados;
 
+ucontext_t despachante;
+
 int checkPrio(int prio){
 	int retorno;
 	if(prio < PRIO_ALTA || prio > PRIO_BAIXA){
@@ -163,26 +165,18 @@ int csetprio(int tid, int prio){
 }
 
 int cyield(void) {
-	int retorno = ERRO;
-
-	if(runningThread->prio == PRIO_ALTA){
-		if(AppendFila2(highPriorityQueue, runningThread) == 0){
-			retorno = OK;
-		}
-	}
-	else if(runningThread->prio == PRIO_MEDIA){
-		if(AppendFila2(mediumPriorityQueue, runningThread) == 0){
-			retorno = OK;
-		}
-	}
-	else if(runningThread->prio == PRIO_BAIXA){
-		if(AppendFila2(lowPriorityQueue, runningThread) == 0){
-			retorno = OK;
-		}
-	}
+	int retorno;
 
 	runningThread->state = PROCST_APTO;
-	
+	retorno = changeFilaPorPrioridade(runningThread, runningThread->prio);
+	if(retorno == ERRO){
+		runningThread->state = PROCST_EXEC;
+	}
+	else{
+		swapcontext(&runningThread->context, &despachante);
+	}
+	runningThread =  NULL;
+
 	return retorno;
 }
 
