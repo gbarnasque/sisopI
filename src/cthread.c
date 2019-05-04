@@ -163,7 +163,27 @@ int csetprio(int tid, int prio){
 }
 
 int cyield(void) {
-	return ERRO;
+	int retorno = ERRO;
+
+	if(runningThread->prio == PRIO_ALTA){
+		if(AppendFila2(highPriorityQueue, runningThread) == 0){
+			retorno = OK;
+		}
+	}
+	else if(runningThread->prio == PRIO_MEDIA){
+		if(AppendFila2(mediumPriorityQueue, runningThread) == 0){
+			retorno = OK;
+		}
+	}
+	else if(runningThread->prio == PRIO_BAIXA){
+		if(AppendFila2(lowPriorityQueue, runningThread) == 0){
+			retorno = OK;
+		}
+	}
+
+	runningThread->state = PROCST_APTO;
+	
+	return retorno;
 }
 
 int cjoin(int tid) {
