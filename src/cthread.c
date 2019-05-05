@@ -60,7 +60,10 @@ int main(){
 	cidentify(name, size);
 	printf("%s", name);
 
-	csetprio(1,3);
+	csem_t *steste = (csem_t*) malloc(sizeof(csem_t));
+	if(csem_init(steste, 4) == 0){
+		printf("Deu-lhe, %d\n", steste->count);
+	}
 
 }
 
@@ -187,7 +190,19 @@ int cjoin(int tid) {
 }
 
 int csem_init(csem_t *sem, int count) {
-	return ERRO;
+	int retorno;
+
+	PFILA2 newFila = (PFILA2) malloc(sizeof(PFILA2));;
+	if(CreateFila2(newFila) == 0){
+		sem->count = count;
+		sem->fila = newFila;
+		retorno = OK;
+	}
+	else{
+		retorno = ERRO;
+	}
+	
+	return retorno;
 }
 
 int cwait(csem_t *sem) {
