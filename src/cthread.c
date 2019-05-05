@@ -206,24 +206,47 @@ int csem_init(csem_t *sem, int count) {
 }
 
 int cwait(csem_t *sem) {
+	TCB_t* dummyThread;
 	TCB_t* oldThread;
 
 	sem->count--;
 	if(sem->count <= 0){
 		oldThread = runningThread;
 		if(AppendFila2(bloqueados, oldThread) == 0){
-			if(AppendFila2(sem->fila, oldThread) == 0){
-				oldThread->state = PROCST_BLOQ;
-				runningThread = NULL;
-
-				swapcontext(&oldThread->context, &despachante);
-				return OK;
+			if(GetAtIteratorFila2(sem->fila) == NULL){
+				if(AppendFila2(sem->fila, oldThread) == 0){
+					oldThread->state = PROCST_BLOQ;
+					runningThread = NULL;
+					swapcontext(&oldThread->context, &despachante);
+					return OK;
+				}
+				else{
+					LastFila2(bloqueados);
+					DeleteAtIteratorFila2(bloqueados);
+					sem->count++;
+					return ERRO;
+				}
 			}
 			else{
-				LastFila2(bloqueados);
-				DeleteAtIteratorFila2(bloqueados);
-				sem->count++;
-				return ERRO;
+				FirstFila2(sem->fila);
+				dummyThread = (TCB_t *) GetAtIteratorFila2(sem->fila);
+				do{
+					if(oldThread->prio < dummyThread->prio){
+						InsertBeforeIteratorFila2(sem->fila, oldThread);
+						oldThread->state = PROCST_BLOQ;
+						runningThread = NULL;
+						swapcontext(&oldThread->context, &despachante);
+						return OK;
+					}
+					NextFila2(sem->fila);
+					dummyThread = (TCB_t *) GetAtIteratorFila2(sem->fila);
+				} while(dummyThread != NULL);
+
+				AppendFila2(sem->fila, oldThread);
+				oldThread->state = PROCST_BLOQ;
+				runningThread = NULL;
+				swapcontext(&oldThread->context, &despachante);
+				return OK;
 			}
 		}
 		else{
