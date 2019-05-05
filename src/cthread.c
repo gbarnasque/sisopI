@@ -174,9 +174,9 @@ int cyield(void) {
 	}
 	else{
 		swapcontext(&runningThread->context, &despachante);
+		runningThread =  NULL;
 	}
-	runningThread =  NULL;
-
+	
 	return retorno;
 }
 
