@@ -206,7 +206,32 @@ int csem_init(csem_t *sem, int count) {
 }
 
 int cwait(csem_t *sem) {
-	return ERRO;
+	TCB_t* oldThread;
+
+	sem->count--;
+	if(sem->count <= 0){
+		oldThread = runningThread;
+		if(AppendFila2(bloqueados, oldThread) == 0){
+			if(AppendFila2(sem->fila, oldThread) == 0){
+				oldThread->state = PROCST_BLOQ;
+				runningThread = NULL;
+
+				swapcontext(&oldThread->context, &despachante);
+				return OK;
+			}
+			else{
+				LastFila2(bloqueados);
+				DeleteAtIteratorFila2(bloqueados);
+				sem->count++;
+				return ERRO;
+			}
+		}
+		else{
+			sem->count++;
+			return ERRO;
+		}
+	}
+	return OK;
 }
 
 int csignal(csem_t *sem) {
