@@ -258,7 +258,40 @@ int cwait(csem_t *sem) {
 }
 
 int csignal(csem_t *sem) {
-	return ERRO;
+	TCB_t* thread;
+	TCB_t* dummyThread;
+
+	sem->count++;
+	if(sem->count < 0){
+		if(FirstFila2(sem->fila) == 0){
+			thread = (TCB_t *) GetAtIteratorFila2(sem->fila);
+			if(thread == NULL){
+				sem->count--;
+				return ERRO;
+			}
+			else{
+				FirstFila2(bloqueados);
+				dummyThread = (TCB_t *) GetAtIteratorFila2(bloqueados);
+				do{
+					if(dummyThread->tid == thread->tid){
+						thread->state = PROCST_APTO;
+						changeFilaPorPrioridade(thread, thread->prio);
+						DeleteAtIteratorFila2(bloqueados);
+						DeleteAtIteratorFila2(sem->fila);
+						return OK;
+					}
+					NextFila2(bloqueados);
+					dummyThread = (TCB_t *) GetAtIteratorFila2(bloqueados);
+				} while(dummyThread != NULL);
+				return ERRO;
+			}
+		}
+		else{
+			sem->count--;
+			return ERRO;
+		}
+	}
+	return OK;
 }
 
 int cidentify (char *name, int size) {
