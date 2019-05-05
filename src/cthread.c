@@ -166,17 +166,19 @@ int csetprio(int tid, int prio){
 
 int cyield(void) {
 	int retorno;
+	TCB_t* oldThread
 
-	runningThread->state = PROCST_APTO;
 	retorno = changeFilaPorPrioridade(runningThread, runningThread->prio);
 	if(retorno == ERRO){
 		runningThread->state = PROCST_EXEC;
 	}
 	else{
-		swapcontext(&runningThread->context, &despachante);
+		runningThread->state = PROCST_APTO;
+		oldThread = runningThread;
+		runningThread = NULL;
+		swapcontext(&oldThread->context, &despachante);
 	}
-	runningThread =  NULL;
-
+	
 	return retorno;
 }
 
