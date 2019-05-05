@@ -148,7 +148,7 @@ int csetprio(int tid, int prio){
 					}
 				}
 				NextFila2(lowPriorityQueue);
-			} 
+			} while(thread != NULL);
 		}
 		if(FirstFila2(bloqueados) == 0){
 			do{
@@ -166,7 +166,7 @@ int csetprio(int tid, int prio){
 
 int cyield(void) {
 	int retorno;
-	TCB_t* oldThread
+	TCB_t* oldThread;
 
 	retorno = changeFilaPorPrioridade(runningThread, runningThread->prio);
 	if(retorno == ERRO){
