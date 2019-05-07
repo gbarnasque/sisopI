@@ -18,9 +18,9 @@ PFILA2 threadJoins;
 
 ucontext_t despachante;
 
-typedef struct threadJoins{
-	TCB_t * bloqueadora;
-	int tidblock;
+typedef struct pair{
+	int tidbloqueada;
+	int tidbloqueadora;
 };
 
 int checkPrio(int prio){
@@ -246,29 +246,27 @@ int cyield(void) {
 }
 
 int cjoin(int tid) {
-	if (buscaThread(tid) == NULL)
-		return ERRO;
-	//else if(blockingThreads(tid))
-	else if (GetAtIteratorFila2(threadJoins) == NULL){
-		threadJoins = (threadJoins*) malloc(sizeof(threadJoins));
-		threadJoins->tidbloqu
-	}
+	if (buscaThread(tid) == NULL){
 		return ERRO;
 	}
-
-
+	else if (GetAtIteratorFila2(threadJoins) != NULL){
+		pair* par = (pair*) GetAtIteratorFila2(threadJoins);
+		while(par != NULL){
+			if(par->tidbloqueadora == tid){
+				return ERRO;
+			}
+		}
+	}
 	TCB_t* oldThread = runningThread;
 	runningThread = NULL;
 	oldThread->state = PROCST_BLOQ;
-
-	threadBlock *blockedThread = malloc(sizeof(threadBlock));
-	blockedThread->tidBlock = tid;
-	blockedThread->thread = oldThread;
-
-	AppendFila2(bloqueados, (void *) blockedThread);
-
+	pair* par = (pair*) malloc(sizeof(threadJoins));
+	par->tidbloqueadora = tid;
+	par->tidbloqueada = oldThread->tid;
+	AppendFila2(threadJoins, (void *) par);
+	AppendFila2(bloqueados, (void *) oldThread);
 	swapcontext(&(oldThread->context), &despachante);
-
+	
 	return OK;
 }
 
