@@ -125,6 +125,7 @@ int main(){
 		printf("Deu-lhe, %d\n", steste->count);
 	}
 
+	return OK;
 }
 
 int ccreate (void* (*start)(void*), void *arg, int prio) {
