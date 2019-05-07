@@ -14,14 +14,14 @@
 TCB_t *runningThread;
 PFILA2 highPriorityQueue, mediumPriorityQueue, lowPriorityQueue;
 PFILA2 bloqueados;
+PFILA2 threadJoins;
 
 ucontext_t despachante;
 
-typedef struct threadBlock{
-	TCB_t * thread;
-	int tidBlock;
-	struct threadBlock prox;
-} threadBlock;
+typedef struct threadJoins{
+	TCB_t * bloqueadora;
+	int tidblock;
+};
 
 int checkPrio(int prio){
 	int retorno;
@@ -100,6 +100,7 @@ TCB_t * buscaThread(int tid){
 	return NULL;
 }
 
+/*
 int blockingThreads (int tid){
 	FirstFila2(bloqueados);
 	threadBlock *blockedThread = (threadBlock*) GetAtIteratorFila2(bloqueados);
@@ -111,7 +112,7 @@ int blockingThreads (int tid){
 	}
 	return 0;
 }
-
+//*/
 int main(){
 	char *name;
 	int size = 74;
@@ -247,19 +248,22 @@ int cyield(void) {
 int cjoin(int tid) {
 	if (buscaThread(tid) == NULL)
 		return ERRO;
-	else if(blockingThreads(tid)){
+	//else if(blockingThreads(tid))
+	else if (GetAtIteratorFila2(threadJoins) == NULL){
+		threadJoins = (threadJoins*) malloc(sizeof(threadJoins));
+		threadJoins->tidbloqu
+	}
 		return ERRO;
 	}
 
 
-//Altera o estado da thread executando para bloqueado
 	TCB_t* oldThread = runningThread;
 	runningThread = NULL;
 	oldThread->state = PROCST_BLOQ;
 
 	threadBlock *blockedThread = malloc(sizeof(threadBlock));
 	blockedThread->tidBlock = tid;
-	blockedThread->thread = last_executing;
+	blockedThread->thread = oldThread;
 
 	AppendFila2(bloqueados, (void *) blockedThread);
 
