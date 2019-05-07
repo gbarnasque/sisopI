@@ -250,7 +250,7 @@ int cjoin(int tid) {
 		return ERRO;
 	}
 	else if (GetAtIteratorFila2(threadJoins) != NULL){
-		pair* par = (pair*) GetAtIteratorFila2(threadJoins);
+		pairS* par = (pairS*) GetAtIteratorFila2(threadJoins);
 		while(par != NULL){
 			if(par->tidbloqueadora == tid){
 				return ERRO;
@@ -260,7 +260,7 @@ int cjoin(int tid) {
 	TCB_t* oldThread = runningThread;
 	runningThread = NULL;
 	oldThread->state = PROCST_BLOQ;
-	pair* par = (pair*) malloc(sizeof(threadJoins));
+	pairS* par = (pairS*) malloc(sizeof(threadJoins));
 	par->tidbloqueadora = tid;
 	par->tidbloqueada = oldThread->tid;
 	AppendFila2(threadJoins, (void *) par);
