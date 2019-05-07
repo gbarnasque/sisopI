@@ -18,10 +18,10 @@ PFILA2 threadJoins;
 
 ucontext_t despachante;
 
-typedef struct pair{
+typedef struct s_pair{
 	int tidbloqueada;
 	int tidbloqueadora;
-};
+} pairS;
 
 int checkPrio(int prio){
 	int retorno;
