@@ -20,14 +20,14 @@ all: compila gera_lib liga
 	
 compila:
 	#-m32 para compilar em sistemas de 32bits pois support.o está compilada em 32bits
-	$(CC) -o $(BIN_DIR)/cthread.o -c $(SRC_DIR)/cthread.c -Wall -m32
+	$(CC) -o $(BIN_DIR)/cthread.o -c $(SRC_DIR)/cthread.c -Wall
 
 gera_lib:
 	ar crs $(LIB_DIR)/libcthread.a $(BIN_DIR)/cthread.o $(BIN_DIR)/support.o
 	#objdump -a ./lib/libcthread.a para mostar o que está contido na libthread.a
 
 liga:
-	$(CC) -o cthread $(SRC_DIR)/cthread.c -L $(LIB_DIR) -lcthread -Wall -m32
+	$(CC) -o cthread $(SRC_DIR)/cthread.c -L $(LIB_DIR) -lcthread -Wall
 	#$(CC) -o cthread $(SRC_DIR)/cthread.c -L $(LIB_DIR) -lcthread -Wall
 
 clean:

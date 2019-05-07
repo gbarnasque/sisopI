@@ -14,8 +14,14 @@
 TCB_t *runningThread;
 PFILA2 highPriorityQueue, mediumPriorityQueue, lowPriorityQueue;
 PFILA2 bloqueados;
+PFILA2 threadJoins;
 
 ucontext_t despachante;
+
+typedef struct s_pair{
+	int tidbloqueada;
+	int tidbloqueadora;
+} pairS;
 
 int checkPrio(int prio){
 	int retorno;
@@ -42,7 +48,7 @@ int changeFilaPorPrioridade(void *thread, int prio){
 	else if(prio == PRIO_BAIXA){
 		pFila2 = lowPriorityQueue;
 	}
-	
+
 	if(AppendFila2(pFila2, thread) == 0){
 		retorno = OK;
 	}
@@ -53,6 +59,60 @@ int changeFilaPorPrioridade(void *thread, int prio){
 	return retorno;
 }
 
+TCB_t * buscaThread(int tid){
+
+	if (FirstFila2(highPriorityQueue)==0){
+		while (GetAtIteratorFila2(highPriorityQueue) != NULL){
+			TCB_t *dummyThread = (TCB_t *) GetAtIteratorFila2(highPriorityQueue);
+			if (dummyThread->tid == tid)
+				return dummyThread;
+			NextFila2(highPriorityQueue);
+		}
+	}
+
+	if (FirstFila2(mediumPriorityQueue)==0){
+		while (GetAtIteratorFila2(mediumPriorityQueue) != NULL){
+			TCB_t *dummyThread = (TCB_t *) GetAtIteratorFila2(mediumPriorityQueue);
+			if (dummyThread->tid == tid)
+				return dummyThread;
+			NextFila2(mediumPriorityQueue);
+		}
+	}
+
+	if (FirstFila2(lowPriorityQueue)==0){
+		while (GetAtIteratorFila2(lowPriorityQueue) != NULL){
+			TCB_t *dummyThread = (TCB_t *) GetAtIteratorFila2(lowPriorityQueue);
+			if (dummyThread->tid == tid)
+				return dummyThread;
+			NextFila2(lowPriorityQueue);
+		}
+	}
+
+	if (FirstFila2(bloqueados)==0){
+		while (GetAtIteratorFila2(bloqueados) != NULL){
+			TCB_t *dummyThread = (TCB_t *) GetAtIteratorFila2(bloqueados);
+			if (dummyThread->tid == tid)
+				return dummyThread;
+			NextFila2(bloqueados);
+		}
+	}
+
+	return NULL;
+}
+
+/*
+int blockingThreads (int tid){
+	FirstFila2(bloqueados);
+	threadBlock *blockedThread = (threadBlock*) GetAtIteratorFila2(bloqueados);
+	while (blockedThread != NULL){
+		if (blockedThread->tidBlock == tid)
+			return 1;
+		NextFila2(bloqueados);
+		blockedThread = (threadBlock*) GetAtIteratorFila2(bloqueados);
+	}
+	return 0;
+}
+//*/
 int main(){
 	char *name;
 	int size = 74;
@@ -65,6 +125,7 @@ int main(){
 		printf("Deu-lhe, %d\n", steste->count);
 	}
 
+	return OK;
 }
 
 int ccreate (void* (*start)(void*), void *arg, int prio) {
@@ -181,12 +242,33 @@ int cyield(void) {
 		runningThread = NULL;
 		swapcontext(&oldThread->context, &despachante);
 	}
-	
+
 	return retorno;
 }
 
 int cjoin(int tid) {
-	return ERRO;
+	if (buscaThread(tid) == NULL){
+		return ERRO;
+	}
+	else if (GetAtIteratorFila2(threadJoins) != NULL){
+		pairS* par = (pairS*) GetAtIteratorFila2(threadJoins);
+		while(par != NULL){
+			if(par->tidbloqueadora == tid){
+				return ERRO;
+			}
+		}
+	}
+	TCB_t* oldThread = runningThread;
+	runningThread = NULL;
+	oldThread->state = PROCST_BLOQ;
+	pairS* par = (pairS*) malloc(sizeof(threadJoins));
+	par->tidbloqueadora = tid;
+	par->tidbloqueada = oldThread->tid;
+	AppendFila2(threadJoins, (void *) par);
+	AppendFila2(bloqueados, (void *) oldThread);
+	swapcontext(&(oldThread->context), &despachante);
+	
+	return OK;
 }
 
 int csem_init(csem_t *sem, int count) {
@@ -201,7 +283,7 @@ int csem_init(csem_t *sem, int count) {
 	else{
 		retorno = ERRO;
 	}
-	
+
 	return retorno;
 }
 
@@ -298,5 +380,3 @@ int cidentify (char *name, int size) {
 	strncpy (name, "Gustavo Oliva - 00263056\nLuine Gallois - 00205954\nTiago Villa - 00219144\n", size);
 	return 0;
 }
-
-
